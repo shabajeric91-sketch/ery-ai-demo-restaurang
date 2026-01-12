@@ -7,83 +7,66 @@
     <style>
         body {
             font-family: 'Georgia', serif;
-            background: #1a1a1a;
-            color: #f4f4f4;
             margin: 0;
-            padding: 20px;
-            text-align: center;
+            padding: 0;
+            /* Här är en direktlänk till en snygg restaurangbild */
+            background-image: url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=2070&auto=format&fit=crop'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .overlay {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 50px;
             border: 2px solid #d4af37;
-            padding: 40px;
-            background: rgba(0,0,0,0.8);
+            text-align: center;
+            max-width: 600px;
         }
-        h1 { color: #d4af37; font-size: 3em; margin-bottom: 10px; }
-        .menu-item { margin: 20px 0; font-size: 1.2em; }
-        
-        /* Chat-fönster */
+        h1 { color: #d4af37; font-size: 3.5em; margin: 0; }
+        p { font-style: italic; font-size: 1.2em; }
+        .menu { margin-top: 30px; }
+        .menu-item { margin: 15px 0; font-size: 1.3em; border-bottom: 1px solid #444; padding-bottom: 5px; }
+
+        /* Chat-knapp och fönster */
         #chat-window {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            height: 400px;
-            background: white;
-            color: black;
-            border-radius: 10px;
-            display: none;
-            flex-direction: column;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            z-index: 1000;
+            position: fixed; bottom: 20px; right: 20px; width: 320px; height: 450px;
+            background: white; color: black; border-radius: 15px; display: none;
+            flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 1000;
         }
-        #msgs { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; }
-        .msg { margin: 5px; padding: 8px; border-radius: 5px; max-width: 80%; }
-        .user { background: #d4af37; align-self: flex-end; color: white; }
-        .ai { background: #eee; align-self: flex-start; }
-        .chat-input { display: flex; border-top: 1px solid #ddd; }
-        .chat-input input { flex: 1; border: none; padding: 10px; outline: none; }
-        .chat-input button { background: #d4af37; border: none; color: white; padding: 10px; cursor: pointer; }
-        
-        .chat-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #d4af37;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        #msgs { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; font-family: sans-serif; }
+        .msg { margin: 8px 0; padding: 10px; border-radius: 10px; max-width: 85%; line-height: 1.4; }
+        .user { background: #d4af37; color: white; align-self: flex-end; }
+        .ai { background: #f0f0f0; color: #333; align-self: flex-start; }
+        .chat-input { display: flex; border-top: 1px solid #eee; padding: 10px; }
+        .chat-input input { flex: 1; border: 1px solid #ddd; padding: 10px; border-radius: 5px; outline: none; }
+        .chat-input button { background: #d4af37; color: white; border: none; padding: 10px 15px; margin-left: 5px; border-radius: 5px; cursor: pointer; }
+        .chat-toggle { position: fixed; bottom: 20px; right: 20px; background: #d4af37; color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="overlay">
     <h1>ERY BISTRO</h1>
-    <p>En smakupplevelse utöver det vanliga</p>
-    <hr style="border: 1px solid #d4af37; width: 50%;">
-    
-    <h2>KVÄLLENS MENY</h2>
-    <div class="menu-item">Entrecôte med tryffelsmör • 345 kr</div>
-    <div class="menu-item">Ratatouille Provencale • 225 kr</div>
-    <div class="menu-item">Crème Brûlée • 115 kr</div>
+    <p>En exklusiv smakupplevelse</p>
+    <div class="menu">
+        <div class="menu-item">Hängmörad Entrecôte • 345 kr</div>
+        <div class="menu-item">Smörstekt Röding • 295 kr</div>
+        <div class="menu-item">Tryffelrisotto • 245 kr</div>
+    </div>
 </div>
 
-<div class="chat-toggle" onclick="toggleChat()">Prata med Hovmästaren</div>
+<div class="chat-toggle" onclick="toggleChat()">Hovmästare Online 💬</div>
 
 <div id="chat-window">
-    <div style="background:#d4af37; color:white; padding:10px; border-radius:10px 10px 0 0;">
-        Hovmästare Ery
-        <span onclick="toggleChat()" style="float:right; cursor:pointer;">×</span>
-    </div>
-    <div id="msgs">
-        <div class="msg ai">Välkommen till Ery Bistro. Vill du boka ett bord eller se vår meny?</div>
-    </div>
+    <div style="background:#d4af37; color:white; padding:15px; border-radius:15px 15px 0 0; font-weight:bold;">Hovmästare Ery</div>
+    <div id="msgs"><div class="msg ai">God kväll! Hur kan jag stå till tjänst?</div></div>
     <div class="chat-input">
-        <input type="text" id="userInput" placeholder="Skriv här...">
+        <input type="text" id="userInput" placeholder="Skriv din fråga...">
         <button onclick="send()">SÄND</button>
     </div>
 </div>
@@ -96,27 +79,23 @@
 
     async function send() {
         const input = document.getElementById('userInput');
-        const box = document.getElementById('msgs');
         const text = input.value.trim();
         if(!text) return;
 
-        // Lägg till användarens bubbla
+        const box = document.getElementById('msgs');
         const uDiv = document.createElement('div');
         uDiv.className = 'msg user';
         uDiv.textContent = text;
         box.appendChild(uDiv);
         input.value = '';
-        box.scrollTop = box.scrollHeight;
 
         try {
-            // Vi anropar api/chat i mappen api
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: text })
             });
             const data = await res.json();
-            
             const aDiv = document.createElement('div');
             aDiv.className = 'msg ai';
             aDiv.textContent = data.text;
@@ -124,14 +103,11 @@
         } catch (e) {
             const eDiv = document.createElement('div');
             eDiv.className = 'msg ai';
-            eDiv.textContent = "Kunde inte nå hovmästaren.";
+            eDiv.textContent = "Hovmästaren är tillfälligt upptagen.";
             box.appendChild(eDiv);
         }
         box.scrollTop = box.scrollHeight;
     }
-    
-    document.getElementById('userInput').onkeydown = (e) => { if(e.key === 'Enter') send() };
 </script>
-
 </body>
 </html>
