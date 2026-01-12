@@ -36,61 +36,46 @@
     </div>
 
     <script>
-        function toggleChat() {
-            const win = document.getElementById('chat-window');
-            win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+    function toggleChat() {
+        const win = document.getElementById('chat-window');
+        win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    async function send() {
+        const input = document.getElementById('userInput');
+        const box = document.getElementById('msgs');
+        const text = input.value.trim();
+        if(!text) return;
+
+        // Lägg till användarens meddelande
+        const uDiv = document.createElement('div');
+        uDiv.className = 'msg user';
+        uDiv.textContent = text;
+        box.appendChild(uDiv);
+        input.value = '';
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: text })
+            });
+            const data = await res.json();
+            
+            // Visa AI:ns svar
+            const aDiv = document.createElement('div');
+            aDiv.className = 'msg ai';
+            aDiv.textContent = data.text; // Vi läser direkt från .text nu
+            box.appendChild(aDiv);
+        } catch (e) {
+            const eDiv = document.createElement('div');
+            eDiv.className = 'msg ai';
+            eDiv.textContent = "Kunde inte nå servern.";
+            box.appendChild(eDiv);
         }
-
-        async function send() {
-            const input = document.getElementById('userInput');
-            const box = document.getElementById('msgs');
-            const text = input.value.trim();
-            if(!text) return;
-
-            // 1. Visa användarens text
-            const uDiv = document.createElement('div');
-            uDiv.className = 'msg user';
-            uDiv.textContent = text;
-            box.appendChild(uDiv);
-            input.value = '';
-            box.scrollTop = box.scrollHeight;
-
-            try {
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: text })
-                });
-
-                const data = await res.json();
-                console.log("DEBUG API SVAR:", data);
-
-                let aiText = "";
-
-                // Kontrollera om Gemini svarade korrekt
-                if (data && data.candidates && data.candidates[0].content) {
-                    aiText = data.candidates[0].content.parts[0].text;
-                } else {
-                    // Om API:et svarar 200 men utan text (t.ex. fel nyckel)
-                    aiText = "Jag fick kontakt med servern, men inget svar från AI:n. Kontrollera din API-nyckel i Vercel.";
-                    console.error("Strukturfel:", data);
-                }
-
-                const aDiv = document.createElement('div');
-                aDiv.className = 'msg ai';
-                aDiv.textContent = aiText;
-                box.appendChild(aDiv);
-
-            } catch (e) {
-                const eDiv = document.createElement('div');
-                eDiv.className = 'msg ai';
-                eDiv.textContent = "Fel: Kunde inte prata med /api/chat. Kontrollera Vercel Logs.";
-                box.appendChild(eDiv);
-                console.error("Fetch error:", e);
-            }
-            box.scrollTop = box.scrollHeight;
-        }
-        document.getElementById('userInput').onkeydown = (e) => { if(e.key === 'Enter') send() };
-    </script>
+        box.scrollTop = box.scrollHeight;
+    }
+    document.getElementById('userInput').onkeydown = (e) => { if(e.key === 'Enter') send() };
+</script>
 </body>
 </html>
