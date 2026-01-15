@@ -542,6 +542,35 @@
       cursor: not-allowed;
     }
 
+    /* Powered by branding */
+    .powered-by {
+      padding: 0.75rem 2rem;
+      background: var(--cream);
+      border-top: 1px solid rgba(212,165,116,0.15);
+      text-align: center;
+    }
+
+    .powered-by a {
+      font-size: 0.7rem;
+      color: var(--charcoal);
+      opacity: 0.5;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: opacity 0.3s;
+    }
+
+    .powered-by a:hover {
+      opacity: 0.8;
+    }
+
+    .powered-by svg {
+      width: 10px;
+      height: 10px;
+      vertical-align: middle;
+      margin-right: 4px;
+      opacity: 0.5;
+    }
+
     /* Footer */
     footer {
       background: var(--charcoal);
@@ -772,11 +801,19 @@
       <input type="text" id="uIn" placeholder="Skriv ditt meddelande här..." autocomplete="off">
       <button onclick="send()">Skicka</button>
     </div>
+    <div class="powered-by">
+      <a href="https://eryai.tech" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        Powered by EryAI.tech
+      </a>
+    </div>
   </div>
 
   <!-- Footer -->
   <footer>
-    <p>&copy; 2026 Bella Italia Stockholm · Authentic Italian Dining Since 1995 · Powered by Ery AI</p>
+    <p>&copy; 2026 Bella Italia Stockholm · Authentic Italian Dining Since 1995</p>
   </footer>
 
   <script>
