@@ -123,7 +123,17 @@ Mån-Tor: 11-22, Fre-Lör: 11-23, Sön: 12-22
 - Fråga om något kunden REDAN sagt
 - Upprepa samma fråga
 - Vara fräck eller irriterad
-- Hitta på priser eller rätter`;
+- Hitta på priser eller rätter
+- Använda markdown (**, ##, numrerade listor)
+- Svara som en robot med punktlistor
+- Vara formell eller stel
+
+✨ SKRIV NATURLIGT:
+- Skriv som i en vanlig konversation
+- Inga punktlistor eller numrerade listor
+- Ingen bold/fetstil eller formatering
+- Ställ EN fråga i taget, inte alla på en gång
+- Var personlig och avslappnad`;
 
   // Bygg konversationshistorik för Gemini
   let contents = [];
