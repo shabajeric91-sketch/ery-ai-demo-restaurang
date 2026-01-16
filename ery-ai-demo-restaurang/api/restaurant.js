@@ -112,8 +112,10 @@ Mån-Tor: 11-22, Fre-Lör: 11-23, Sön: 12-22
 ⚠️ VIKTIGT OM BOKNINGAR:
 - Du kan INTE bekräfta bokningar själv
 - Säg ALDRIG "din bokning är bekräftad" eller "bordet är reserverat"
-- Säg istället: "Tack! Jag har noterat din förfrågan. Restaurangen återkommer inom kort med bekräftelse."
+- Säg istället: "Tack! Jag har skickat din förfrågan till restaurangen. Du kommer få en bekräftelse via email/sms inom kort."
 - Du tar endast EMOT bokningsförfrågningar - personalen bekräftar
+- Gästen måste INVÄNTA bekräftelse innan bokningen är giltig
+- Förtydliga att bordet INTE är reserverat förrän restaurangen bekräftat
 
 🤖 OM NÅGON FRÅGAR OM DU ÄR AI:
 - Var ärlig: "Ja, jag är en AI-assistent skapad för Bella Italia av EryAI.tech!"
@@ -211,8 +213,8 @@ Mån-Tor: 11-22, Fre-Lör: 11-23, Sön: 12-22
       }
     }
 
-    // Analysera konversationen för komplett reservation eller frågor som behöver svar
-    // Kör alltid efter minst 2 meddelanden (1 i history + nuvarande)
+    // Analysera konversationen ENDAST om det ser ut som kontaktinfo finns
+    // Detta sparar API-anrop och undviker rate limits
     const fullConversation = [
       ...(history || []),
       { role: 'user', content: prompt },
@@ -220,8 +222,25 @@ Mån-Tor: 11-22, Fre-Lör: 11-23, Sön: 12-22
     ];
     
     if (currentSessionId && fullConversation.length >= 4) {
-      // Minst 2 utbyten (4 meddelanden: user, assistant, user, assistant)
-      await analyzeConversation(currentSessionId, fullConversation);
+      // Kolla om senaste meddelanden innehåller kontaktinfo (email eller telefon)
+      const recentMessages = fullConversation.slice(-4).map(m => m.content).join(' ').toLowerCase();
+      
+      const hasEmail = /@/.test(recentMessages);
+      const hasPhone = /(\d{3,4}[\s-]?\d{2,3}[\s-]?\d{2,4}|\d{10,})/.test(recentMessages);
+      const hasComplaint = /(klagomål|missnöjd|dålig|besviken|arg|fel |problem|klaga)/i.test(recentMessages);
+      const wantsHuman = /(prata med|tala med|personal|chef|människa|riktig person)/i.test(recentMessages);
+      
+      // Frågor som Sofia troligen inte kan svara på - kräver restaurangens input
+      const specialRequests = /(kosher|halal|vegan|strikt|privat event|kalas|bröllop|svensexa|möhippa|firmafest|allergisk mot|intolerans|specialkost|catering|hyra lokal|stora sällskap|rullstol|tillgänglighet|parkering|present|julbord|påsk|nyår)/i.test(recentMessages);
+      
+      // Sofias svar indikerar att hon inte kunde svara
+      const sofiaUnsure = /(vet tyvärr inte|kan inte svara på|får du kontakta|rekommenderar att du ringer|bäst att fråga|inte säker på|får återkomma)/i.test(aiResponse);
+      
+      // Kör bara Gemini-analys om det finns triggers
+      if (hasEmail || hasPhone || hasComplaint || wantsHuman || specialRequests || sofiaUnsure) {
+        console.log('Trigger detected, running analysis:', { hasEmail, hasPhone, hasComplaint, wantsHuman, specialRequests, sofiaUnsure });
+        await analyzeConversation(currentSessionId, fullConversation);
+      }
     }
 
     return res.status(200).json({
@@ -235,7 +254,7 @@ Mån-Tor: 11-22, Fre-Lör: 11-23, Sön: 12-22
 }
 
 // Analysera konversation för reservationer och frågor som behöver mänskligt svar
-async function analyzeConversation(sessionId, conversationHistory) {
+async function analyzeConversation(sessionId, conversationHistory, retryCount = 0) {
   try {
     const API_KEY = process.env.GEMINI_API_KEY;
     if (!API_KEY) return;
@@ -285,6 +304,19 @@ Svara ENDAST med JSON (ingen annan text):
         })
       }
     );
+
+    // Hantera rate limit med retry
+    if (response.status === 429) {
+      if (retryCount < 3) {
+        const waitTime = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+        console.log(`Rate limited, retrying in ${waitTime}ms (attempt ${retryCount + 1}/3)`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        return analyzeConversation(sessionId, conversationHistory, retryCount + 1);
+      } else {
+        console.error('Analysis failed after 3 retries due to rate limiting');
+        return;
+      }
+    }
 
     if (!response.ok) {
       console.error('Analysis API error:', response.status);
