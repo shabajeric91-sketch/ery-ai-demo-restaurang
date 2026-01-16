@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       const { data, error } = await supabase
         .from('chat_sessions')
         .insert({
-          customer_id: 'bella-italia',
+          customer_id: '3c6d67d9-22bb-4a3e-94ca-ca552eddb08e',
           status: 'active',
           metadata: { source: 'web-widget' }
         })
