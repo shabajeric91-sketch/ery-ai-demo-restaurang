@@ -86,6 +86,13 @@ export default async function handler(req, res) {
 - Om kunden sa "4 personer fredag" - kom ihåg det!
 - Upprepa INTE frågor
 
+👥 PERSONALENS SVAR:
+- Ibland svarar PERSONALEN (riktiga människor) gästen direkt i chatten
+- Du ser dessa som [PERSONALENS SVAR TILL GÄSTEN: "..."]
+- Efter personalens svar, fortsätt konversationen naturligt
+- Bekräfta INTE att personalen svarat, bara fortsätt hjälpa gästen
+- Behandla personalens svar som en del av konversationen
+
 🍝 RESTAURANGEN:
 Bella Italia - Strandvägen 42, Stockholm
 Tel: 08-555 1234
@@ -169,10 +176,22 @@ VIKTIGT:
   
   if (history && Array.isArray(history)) {
     for (const msg of history) {
-      contents.push({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
-      });
+      // Om det är personalens svar (human), markera det tydligt för Sofia
+      if (msg.sender_type === 'human') {
+        contents.push({
+          role: 'user',
+          parts: [{ text: `[PERSONALENS SVAR TILL GÄSTEN: "${msg.content}"]` }]
+        });
+        contents.push({
+          role: 'model',
+          parts: [{ text: 'Jag noterar att personalen har svarat gästen.' }]
+        });
+      } else {
+        contents.push({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.content }]
+        });
+      }
     }
   }
   
