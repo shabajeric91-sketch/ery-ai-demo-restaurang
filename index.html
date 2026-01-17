@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bella Italia - Stockholm's Finest Italian Restaurant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --gold: #d4a574;
+      --deep-green: #2d3e2f;
+      --cream: #faf8f5;
+      --charcoal: #1c1c1c;
+      --white: #ffffff;
+    }
+    body {
+      font-family: 'Lora', serif;
+      background: var(--white);
+      color: var(--charcoal);
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+    .top-bar {
+      background: var(--deep-green);
+      color: var(--gold);
+      text-align: center;
+      padding: 0.75rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    nav {
+      position: sticky;
+      top: 0;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      padding: 2rem 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+    }
+    .logo {
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--deep-green);
+      letter-spacing: 0.05em;
+    }
+    nav ul { display: flex; list-style: none; gap: 3rem; }
+    nav a {
+      color: var(--charcoal);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      position: relative;
+      transition: color 0.3s;
+    }
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gold);
+      transition: width 0.3s;
+    }
+    nav a:hover { color: var(--gold); }
+    nav a:hover::after { width: 100%; }
+    .hero {
+      height: 90vh;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.5)), 
+                  url('data:image/svg+xml,%3Csvg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="g" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%232d3e2f;stop-opacity:1"/%3E%3Cstop offset="100%25" style="stop-color:%231c1c1c;stop-opacity:1"/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="1920" height="1080" fill="url(%23g)"/%3E%3Ccircle cx="400" cy="300" r="200" fill="%23d4a574" opacity="0.1"/%3E%3Ccircle cx="1500" cy="800" r="300" fill="%23d4a574" opacity="0.05"/%3E%3C/svg%3E') center/cover;
+      color: white;
+      text-align: center;
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1000px;
+      padding: 0 2rem;
+    }
+    .hero-label {
+      font-size: 0.9rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 2rem;
+    }
+    .hero h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(4rem, 12vw, 9rem);
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      line-height: 0.95;
+      letter-spacing: 0.05em;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .hero-tagline {
+      font-size: 1.5rem;
+      margin-bottom: 3.5rem;
+      font-weight: 400;
+      opacity: 0.95;
+      font-style: italic;
+    }
+    .hero-btn {
+      display: inline-block;
+      padding: 1.5rem 4rem;
+      background: var(--gold);
+      color: var(--charcoal);
+      text-decoration: none;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 600;
+      transition: all 0.4s;
+      box-shadow: 0 10px 40px rgba(212, 165, 116, 0.3);
+    }
+    .hero-btn:hover {
+      background: var(--charcoal);
+      color: var(--gold);
+      transform: translateY(-3px);
+    }
+    .about-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 70vh;
+    }
+    .about-image {
+      background: linear-gradient(rgba(45, 62, 47, 0.7), rgba(45, 62, 47, 0.7)),
+                  url('data:image/svg+xml,%3Csvg width="800" height="800" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="800" height="800" fill="%232d3e2f"/%3E%3Ctext x="400" y="400" font-size="120" fill="%23d4a574" opacity="0.3" text-anchor="middle" font-family="serif"%3E🍝%3C/text%3E%3C/svg%3E') center/cover;
+    }
+    .about-content {
+      padding: 8rem 6rem;
+      background: var(--cream);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .about-eyebrow {
+      font-size: 0.85rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 2rem;
+    }
+    .about-content h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 3.5rem;
+      font-weight: 500;
+      color: var(--deep-green);
+      margin-bottom: 2rem;
+      line-height: 1.2;
+    }
+    .about-content p {
+      font-size: 1.125rem;
+      color: var(--charcoal);
+      margin-bottom: 1.5rem;
+      line-height: 1.9;
+    }
+    .menu-section { padding: 10rem 5%; background: var(--white); }
+    .menu-header { text-align: center; margin-bottom: 6rem; }
+    .menu-header h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 4rem;
+      color: var(--deep-green);
+      margin-bottom: 1.5rem;
+    }
+    .menu-header p { font-size: 1.25rem; color: var(--charcoal); opacity: 0.8; }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3rem;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    .dish-card {
+      background: var(--white);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 50px rgba(0,0,0,0.08);
+      transition: all 0.4s;
+    }
+    .dish-card:hover {
+      transform: translateY(-12px);
+      box-shadow: 0 20px 70px rgba(0,0,0,0.15);
+    }
+    .dish-image {
+      width: 100%;
+      height: 280px;
+      background: linear-gradient(135deg, var(--deep-green), var(--charcoal));
+      position: relative;
+    }
+    .dish-image::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 30% 40%, rgba(212,165,116,0.3) 0%, transparent 50%),
+        radial-gradient(circle at 70% 60%, rgba(212,165,116,0.2) 0%, transparent 50%);
+    }
+    .dish-image::after {
+      content: attr(data-dish);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Cinzel', serif;
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: rgba(212,165,116,0.2);
+      text-transform: uppercase;
+    }
+    .dish-content { padding: 2.5rem; }
+    .dish-content h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.75rem;
+      color: var(--deep-green);
+      margin-bottom: 0.75rem;
+    }
+    .dish-price {
+      color: var(--gold);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .dish-content p { font-size: 1rem; color: var(--charcoal); opacity: 0.8; line-height: 1.7; }
+    .info-banner { background: var(--deep-green); color: var(--white); padding: 6rem 5%; }
+    .info-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5rem;
+      text-align: center;
+    }
+    .info-box h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.5rem;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    .info-box p { font-size: 1.05rem; line-height: 1.8; opacity: 0.9; }
+    .cta-section { padding: 10rem 5%; text-align: center; background: var(--cream); }
+    .cta-section h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 4rem;
+      color: var(--deep-green);
+      margin-bottom: 2rem;
+    }
+    .cta-section p {
+      font-size: 1.25rem;
+      color: var(--charcoal);
+      margin-bottom: 3rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #ery-trigger {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 70px;
+      height: 70px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 40px rgba(212, 165, 116, 0.4);
+      z-index: 1000;
+      transition: all 0.3s;
+    }
+    #ery-trigger:hover { transform: scale(1.1); }
+    #ery-trigger svg { width: 30px; height: 30px; stroke: var(--charcoal); stroke-width: 2.5; }
+    
+    /* Notification badge */
+    #ery-trigger .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 24px;
+      height: 24px;
+      background: #dc2626;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    #ery-window {
+      position: fixed;
+      bottom: 100px;
+      right: 2rem;
+      width: 400px;
+      max-width: calc(100vw - 2rem);
+      height: 600px;
+      max-height: calc(100vh - 140px);
+      background: var(--white);
+      border-radius: 20px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.2);
+      z-index: 1000;
+      overflow: hidden;
+      border: 1px solid rgba(212,165,116,0.2);
+    }
+    #ery-window header {
+      background: linear-gradient(135deg, var(--deep-green), #1c3d1e);
+      padding: 1.5rem 2rem;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #ery-window header h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin: 0;
+    }
+    #close-btn {
+      color: var(--gold);
+      cursor: pointer;
+      font-size: 32px;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+    #close-btn:hover { transform: rotate(90deg); }
+    #chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+      background: var(--cream);
+    }
+    .msg {
+      padding: 0.875rem 1.125rem;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      max-width: 85%;
+      line-height: 1.5;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+    .ai {
+      background: var(--white);
+      color: var(--charcoal);
+      align-self: flex-start;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1px solid rgba(212,165,116,0.1);
+    }
+    /* Human/staff messages */
+    .human {
+      background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+      color: var(--charcoal);
+      align-self: flex-start;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1px solid #86efac;
+    }
+    .human .sender-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #166534;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .user {
+      background: linear-gradient(135deg, var(--gold), #e0b885);
+      color: var(--charcoal);
+      align-self: flex-end;
+    }
+    .typing { font-size: 0.85rem; opacity: 0.6; font-style: italic; }
+    
+    /* New message indicator */
+    .new-message-banner {
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      color: #166534;
+      padding: 0.75rem 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: none;
+    }
+    .new-message-banner:hover {
+      background: #bbf7d0;
+    }
+    
+    .input-area {
+      padding: 1rem;
+      background: var(--white);
+      display: flex;
+      gap: 0.625rem;
+      border-top: 1px solid rgba(212,165,116,0.15);
+    }
+    #uIn {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border-radius: 12px;
+      border: 2px solid rgba(212,165,116,0.25);
+      background: var(--cream);
+      color: var(--charcoal);
+      outline: none;
+      font-size: 16px;
+      font-family: 'Lora', serif;
+      transition: border-color 0.3s;
+    }
+    #uIn:focus { border-color: var(--gold); background: var(--white); }
+    button {
+      background: var(--gold);
+      border: none;
+      padding: 0.875rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--charcoal);
+      transition: all 0.3s;
+      font-family: 'Lora', serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    button:hover { background: var(--deep-green); color: var(--gold); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .powered-by {
+      padding: 0.5rem;
+      background: var(--cream);
+      border-top: 1px solid rgba(212,165,116,0.1);
+      text-align: center;
+    }
+    .powered-by a {
+      font-size: 0.6rem;
+      color: var(--charcoal);
+      opacity: 0.4;
+      text-decoration: none;
+      letter-spacing: 0.03em;
+    }
+    .powered-by a:hover { opacity: 0.7; }
+    .powered-by svg {
+      width: 8px;
+      height: 8px;
+      vertical-align: middle;
+      margin-right: 3px;
+      opacity: 0.4;
+    }
+    footer {
+      background: var(--charcoal);
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      padding: 5rem 2rem;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 1024px) {
+      .menu-grid { grid-template-columns: repeat(2, 1fr); }
+      .about-section { grid-template-columns: 1fr; }
+      .about-image { min-height: 400px; }
+      .about-content { padding: 5rem 3rem; }
+      .info-container { grid-template-columns: 1fr; gap: 3rem; }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 1.5rem 5%; }
+      nav ul { display: none; }
+      .hero h1 { font-size: 3.5rem; }
+      .menu-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .menu-section, .cta-section { padding: 6rem 5%; }
+      .menu-header h2, .cta-section h2 { font-size: 2.5rem; }
+      .about-content h2 { font-size: 2rem; }
+      #ery-window {
+        width: calc(100vw - 1rem);
+        height: calc(100vh - 120px);
+        max-height: none;
+        right: 0.5rem;
+        bottom: 85px;
+        border-radius: 16px;
+      }
+      #ery-trigger { width: 60px; height: 60px; bottom: 1rem; right: 1rem; }
+      #chat-box { padding: 1rem; }
+      .msg { max-width: 88%; font-size: 0.875rem; padding: 0.75rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">Reservationer öppna - Authentic Italian Cuisine - Since 1995</div>
+  <nav>
+    <div class="logo">BELLA ITALIA</div>
+    <ul>
+      <li><a href="#menu">Meny</a></li>
+      <li><a href="#om">Om Oss</a></li>
+      <li><a href="#reservera">Reservera</a></li>
+    </ul>
+  </nav>
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-label">Fine Italian Dining</div>
+      <h1>BELLA<br>ITALIA</h1>
+      <p class="hero-tagline">En kulinarisk resa genom Italiens hjärta</p>
+      <a href="#menu" class="hero-btn">Upptäck Menyn</a>
+    </div>
+  </section>
+  <section class="about-section" id="om">
+    <div class="about-image"></div>
+    <div class="about-content">
+      <div class="about-eyebrow">Vår Historia</div>
+      <h2>Italiensk Excellence</h2>
+      <p>Sedan 1995 har Bella Italia varit Stockholms främsta destination för autentisk italiensk gastronomi. Vår passion för italiensk matkultur speglas i varje rätt vi serverar.</p>
+      <p>Med över 25 års erfarenhet och en kökschef från Milano använder vi endast de finaste italienska råvarorna.</p>
+    </div>
+  </section>
+  <section class="menu-section" id="menu">
+    <div class="menu-header">
+      <h2>Vår Meny</h2>
+      <p>Signaturrätter tillagade med passion och precision</p>
+    </div>
+    <div class="menu-grid">
+      <div class="dish-card">
+        <div class="dish-image" data-dish="Carbonara"></div>
+        <div class="dish-content">
+          <h3>Spaghetti Carbonara</h3>
+          <span class="dish-price">189 kr</span>
+          <p>Klassisk romersk pasta med guanciale, ägg och pecorino romano.</p>
+        </div>
+      </div>
+      <div class="dish-card">
+        <div class="dish-image" data-dish="Risotto"></div>
+        <div class="dish-content">
+          <h3>Risotto ai Funghi</h3>
+          <span class="dish-price">165 kr</span>
+          <p>Krämigt risotto med porcini-svamp, vitt vin och parmigiano reggiano.</p>
+        </div>
+      </div>
+      <div class="dish-card">
+        <div class="dish-image" data-dish="Osso Buco"></div>
+        <div class="dish-content">
+          <h3>Osso Buco Milanese</h3>
+          <span class="dish-price">299 kr</span>
+          <p>Kalvskanka långkokt i vitt vin med gremolata och saffransrisotto.</p>
+        </div>
+      </div>
+      <div class="dish-card">
+        <div class="dish-image" data-dish="Pizza"></div>
+        <div class="dish-content">
+          <h3>Pizza Margherita</h3>
+          <span class="dish-price">145 kr</span>
+          <p>San Marzano tomater, mozzarella di bufala, basilika.</p>
+        </div>
+      </div>
+      <div class="dish-card">
+        <div class="dish-image" data-dish="Branzino"></div>
+        <div class="dish-content">
+          <h3>Branzino al Forno</h3>
+          <span class="dish-price">289 kr</span>
+          <p>Ugnsbakad havsabborre med citron, timjan och grönsaker.</p>
+        </div>
+      </div>
+      <div class="dish-card">
+        <div class="dish-image" data-dish="Tiramisu"></div>
+        <div class="dish-content">
+          <h3>Tiramisu Classico</h3>
+          <span class="dish-price">75 kr</span>
+          <p>Vår signatur-dessert med mascarpone, espresso och kakao.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="info-banner">
+    <div class="info-container">
+      <div class="info-box">
+        <h3>Adress</h3>
+        <p>Strandvägen 42<br>114 56 Stockholm<br>Östermalm</p>
+      </div>
+      <div class="info-box">
+        <h3>Öppettider</h3>
+        <p>Måndag-Torsdag 11:00-22:00<br>Fredag-Lördag 11:00-23:00<br>Söndag 12:00-22:00</p>
+      </div>
+      <div class="info-box">
+        <h3>Bordsreservation</h3>
+        <p>Kontakta vår AI-assistent Sofia<br>via chatten för direktreservation<br>och menyfrågor</p>
+      </div>
+    </div>
+  </section>
+  <section class="cta-section" id="reservera">
+    <h2>Reservera Bord</h2>
+    <p>Upplev äkta italiensk gastronomi i Stockholm. Använd vår intelligenta bokningsassistent Sofia för snabb och enkel reservation.</p>
+    <a href="#" onclick="toggleChat(); return false;" class="hero-btn">Öppna Chatten</a>
+  </section>
+  <div id="ery-trigger" onclick="toggleChat()">
+    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+    <span class="notification-badge" id="notification-badge">!</span>
+  </div>
+  <div id="ery-window">
+    <header>
+      <h3>Sofia - Bella Italia</h3>
+      <span id="close-btn" onclick="toggleChat()">×</span>
+    </header>
+    <div id="new-message-banner" class="new-message-banner" onclick="scrollToBottom()">
+      Nytt svar från restaurangen - Klicka för att se
+    </div>
+    <div id="chat-box">
+      <div class="msg ai">Buongiorno! Jag heter Sofia och hjälper dig gärna med bordsreservationer, menyfrågor eller rekommendationer. Hur kan jag assistera dig idag?</div>
+    </div>
+    <div class="input-area">
+      <input type="text" id="uIn" placeholder="Skriv här..." autocomplete="off">
+      <button onclick="send()">Skicka</button>
+    </div>
+    <div class="powered-by">
+      <a href="https://eryai.tech" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        Powered by EryAI.tech
+      </a>
+    </div>
+  </div>
+  <footer>
+    <p>&copy; 2026 Bella Italia Stockholm - Authentic Italian Dining Since 1995</p>
+  </footer>
+  <script>
+    // ============================================
+    // EryAI Chat Widget - Persistent Session v2
+    // ============================================
+    
+    const STORAGE_KEY = 'eryai_bella_italia_session';
+    const POLL_INTERVAL = 5000; // 5 seconds
+    const SESSION_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+    
+    let chatHistory = [];
+    let sessionId = null;
+    let lastMessageCount = 0;
+    let pollTimer = null;
+    let chatOpen = false;
+    let hasUnreadMessages = false;
+    let isLoadingMessages = false;
+
+    // Load session from localStorage on page load
+    function loadSession() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        console.log('Loading session from localStorage:', saved);
+        
+        if (saved) {
+          const data = JSON.parse(saved);
+          
+          // Check if session is expired
+          const age = Date.now() - (data.timestamp || 0);
+          if (age > SESSION_EXPIRY) {
+            console.log('Session expired, clearing');
+            localStorage.removeItem(STORAGE_KEY);
+            return;
+          }
+          
+          sessionId = data.sessionId;
+          lastMessageCount = data.messageCount || 0;
+          console.log('Session restored:', sessionId, 'with', lastMessageCount, 'messages');
+          
+          // Load existing messages if we have a session
+          if (sessionId) {
+            loadMessagesFromServer();
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load session:', e);
+      }
+    }
+
+    // Save session to localStorage
+    function saveSession() {
+      try {
+        const data = {
+          sessionId: sessionId,
+          messageCount: lastMessageCount,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        console.log('Session saved:', data);
+      } catch (e) {
+        console.error('Failed to save session:', e);
+      }
+    }
+
+    // Load messages from server (for returning visitors)
+    async function loadMessagesFromServer() {
+      if (!sessionId || isLoadingMessages) return;
+      isLoadingMessages = true;
+      
+      console.log('Loading messages for session:', sessionId);
+      
+      try {
+        const response = await fetch(`/api/messages?session_id=${sessionId}`);
+        console.log('Messages API response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Messages API error:', response.status, errorText);
+          isLoadingMessages = false;
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('Loaded messages:', data.count, 'messages');
+        
+        if (data.messages && data.messages.length > 0) {
+          // Clear chat box
+          const chatBox = document.getElementById('chat-box');
+          chatBox.innerHTML = '';
+          
+          // Add all messages
+          chatHistory = [];
+          data.messages.forEach(msg => {
+            const msgType = msg.role === 'user' ? 'user' : (msg.sender_type === 'human' ? 'human' : 'ai');
+            addMessageToUI(msg.content, msgType, false);
+            chatHistory.push({ role: msg.role, content: msg.content, sender_type: msg.sender_type });
+          });
+          
+          lastMessageCount = data.messages.length;
+          saveSession();
+          scrollToBottom();
+          console.log('Chat restored with', data.messages.length, 'messages');
+        }
+      } catch (e) {
+        console.error('Failed to load messages:', e);
+      } finally {
+        isLoadingMessages = false;
+      }
+    }
+
+    // Poll for new messages
+    async function pollForNewMessages() {
+      if (!sessionId || isLoadingMessages) return;
+      
+      try {
+        const response = await fetch(`/api/messages?session_id=${sessionId}`);
+        if (!response.ok) {
+          console.log('Poll response not ok:', response.status);
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('Poll: found', data.count, 'messages, had', lastMessageCount);
+        
+        if (data.messages && data.messages.length > lastMessageCount) {
+          // New messages!
+          const newMessages = data.messages.slice(lastMessageCount);
+          console.log('New messages:', newMessages.length);
+          
+          newMessages.forEach(msg => {
+            // Check if we already have this message in our history
+            const alreadyExists = chatHistory.some(h => 
+              h.content === msg.content && h.role === msg.role
+            );
+            
+            if (!alreadyExists) {
+              const msgType = msg.role === 'user' ? 'user' : (msg.sender_type === 'human' ? 'human' : 'ai');
+              addMessageToUI(msg.content, msgType, true);
+              chatHistory.push({ role: msg.role, content: msg.content, sender_type: msg.sender_type });
+              console.log('Added new message:', msgType, msg.content.substring(0, 50));
+            }
+          });
+          
+          lastMessageCount = data.messages.length;
+          saveSession();
+          
+          // Show notification if chat is closed
+          if (!chatOpen) {
+            showNotificationBadge();
+          }
+        }
+      } catch (e) {
+        console.error('Poll error:', e);
+      }
+    }
+
+    // Start polling
+    function startPolling() {
+      if (pollTimer) return;
+      pollTimer = setInterval(pollForNewMessages, POLL_INTERVAL);
+      console.log('Polling started, interval:', POLL_INTERVAL);
+      // Also poll immediately
+      pollForNewMessages();
+    }
+
+    // Stop polling
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        console.log('Polling stopped');
+      }
+    }
+
+    function toggleChat() {
+      const win = document.getElementById('ery-window');
+      chatOpen = win.style.display !== 'flex';
+      win.style.display = chatOpen ? 'flex' : 'none';
+      
+      if (chatOpen) {
+        document.getElementById('uIn').focus();
+        hideNotificationBadge();
+        hideNewMessageBanner();
+        scrollToBottom();
+        // Poll immediately when opening
+        pollForNewMessages();
+      }
+    }
+
+    function showNotificationBadge() {
+      const badge = document.getElementById('notification-badge');
+      badge.style.display = 'flex';
+      hasUnreadMessages = true;
+      console.log('Notification badge shown');
+    }
+
+    function hideNotificationBadge() {
+      const badge = document.getElementById('notification-badge');
+      badge.style.display = 'none';
+      hasUnreadMessages = false;
+    }
+
+    function showNewMessageBanner() {
+      const banner = document.getElementById('new-message-banner');
+      banner.style.display = 'block';
+    }
+
+    function hideNewMessageBanner() {
+      const banner = document.getElementById('new-message-banner');
+      banner.style.display = 'none';
+    }
+
+    function scrollToBottom() {
+      const box = document.getElementById('chat-box');
+      box.scrollTop = box.scrollHeight;
+      hideNewMessageBanner();
+    }
+
+    function addMessageToUI(text, side, isNew = false) {
+      const box = document.getElementById('chat-box');
+      const div = document.createElement('div');
+      
+      if (side === 'human') {
+        div.className = 'msg human';
+        div.innerHTML = '<span class="sender-label">👤 Personal svarar:</span>' + escapeHtml(text);
+      } else {
+        div.className = `msg ${side}`;
+        div.textContent = text;
+      }
+      
+      box.appendChild(div);
+      
+      if (isNew && chatOpen) {
+        // Check if user is scrolled up
+        const isScrolledUp = box.scrollHeight - box.scrollTop - box.clientHeight > 100;
+        if (isScrolledUp) {
+          showNewMessageBanner();
+        } else {
+          box.scrollTop = box.scrollHeight;
+        }
+      } else if (!isNew) {
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function addMessage(text, side) {
+      addMessageToUI(text, side, false);
+      chatHistory.push({ role: side === 'user' ? 'user' : 'assistant', content: text });
+    }
+
+    function addTypingIndicator() {
+      const box = document.getElementById('chat-box');
+      const div = document.createElement('div');
+      div.id = 'typing-indicator';
+      div.className = 'msg ai typing';
+      div.textContent = 'Sofia skriver...';
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const typing = document.getElementById('typing-indicator');
+      if (typing) typing.remove();
+    }
+
+    async function send() {
+      const input = document.getElementById('uIn');
+      const button = input.nextElementSibling;
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, 'user');
+      input.value = '';
+      input.disabled = true;
+      button.disabled = true;
+      addTypingIndicator();
+
+      try {
+        const response = await fetch('/api/restaurant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            prompt: text, 
+            history: chatHistory.slice(0, -1),
+            sessionId: sessionId
+          })
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        removeTypingIndicator();
+
+        // Save sessionId
+        if (data.sessionId) {
+          sessionId = data.sessionId;
+          console.log('Got sessionId from API:', sessionId);
+        }
+
+        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+          const aiText = data.candidates[0].content.parts[0].text;
+          addMessage(aiText, 'ai');
+        } else {
+          addMessage('Förlåt, jag kunde inte förstå det. Kan du försöka igen?', 'ai');
+        }
+        
+        // Update message count and save
+        lastMessageCount = chatHistory.length;
+        saveSession();
+        
+      } catch (error) {
+        console.error('Send error:', error);
+        removeTypingIndicator();
+        addMessage('Ett fel uppstod. Vänligen försök igen!', 'ai');
+      } finally {
+        input.disabled = false;
+        button.disabled = false;
+        input.focus();
+      }
+    }
+
+    document.getElementById('uIn').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const href = this.getAttribute('href');
+        if (href !== '#') document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Page loaded, initializing chat widget');
+      loadSession();
+      
+      // Start background polling
+      startPolling();
+      
+      // Auto-open chat if ?chat=open in URL (from email link)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('chat') === 'open') {
+        console.log('Auto-opening chat from URL parameter');
+        setTimeout(() => {
+          toggleChat();
+          // Clean up URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }, 500);
+      }
+    });
+  </script>
+</body>
+</html>
