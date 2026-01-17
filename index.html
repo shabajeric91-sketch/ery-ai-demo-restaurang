@@ -1074,12 +1074,11 @@
           console.log('Got sessionId from API:', sessionId);
         }
 
-        // Om personal har tagit över - visa inget AI-svar
+        // Om personal har tagit över - visa inget svar alls
         if (data.humanTookOver) {
-          console.log('Human took over, waiting for staff response');
-          // Visa info till användaren
-          addMessageToUI('Ditt meddelande har skickats till personalen. De svarar dig så snart de kan! 😊', 'ai', false);
-          chatHistory.push({ role: 'assistant', content: 'Meddelande skickat till personal', sender_type: 'system' });
+          console.log('Human took over, message sent silently to staff');
+          // Inget meddelande visas - kunden ser bara sitt eget meddelande
+          // Personal ser det i dashboarden och kan svara
         } else if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
           const aiText = data.candidates[0].content.parts[0].text;
           if (aiText.trim()) {
