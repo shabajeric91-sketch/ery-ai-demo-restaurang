@@ -778,25 +778,30 @@
           const newMessages = data.messages.slice(lastMessageCount);
           console.log('New messages:', newMessages.length);
           
+          let addedAny = false;
           newMessages.forEach(msg => {
-            // Check if we already have this message in our history
-            const alreadyExists = chatHistory.some(h => 
-              h.content === msg.content && h.role === msg.role
-            );
-            
-            if (!alreadyExists) {
-              const msgType = msg.role === 'user' ? 'user' : (msg.sender_type === 'human' ? 'human' : 'ai');
-              addMessageToUI(msg.content, msgType, true);
-              chatHistory.push({ role: msg.role, content: msg.content, sender_type: msg.sender_type });
-              console.log('Added new message:', msgType, msg.content.substring(0, 50));
+            // Only show messages from HUMAN (staff) - AI messages are already shown when sent
+            // This prevents duplicates when Sofia responds
+            if (msg.sender_type === 'human') {
+              // Check if we already have this exact message (by ID if available, or content)
+              const alreadyExists = chatHistory.some(h => 
+                h.id === msg.id || (h.content === msg.content && h.sender_type === msg.sender_type)
+              );
+              
+              if (!alreadyExists) {
+                addMessageToUI(msg.content, 'human', true);
+                chatHistory.push({ id: msg.id, role: msg.role, content: msg.content, sender_type: msg.sender_type });
+                console.log('Added new HUMAN message:', msg.content.substring(0, 50));
+                addedAny = true;
+              }
             }
           });
           
           lastMessageCount = data.messages.length;
           saveSession();
           
-          // Show notification if chat is closed
-          if (!chatOpen) {
+          // Show notification only if we added human messages and chat is closed
+          if (addedAny && !chatOpen) {
             showNotificationBadge();
           }
         }
