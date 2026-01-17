@@ -49,10 +49,8 @@ export default async function handler(req, res) {
   }
 
   // KOLLA OM PERSONAL HAR TAGIT ÖVER KONVERSATIONEN
-  // Om det finns ett human-svar nyligen, ska Sofia INTE svara automatiskt
   let humanTookOver = false;
   if (currentSessionId && history && Array.isArray(history)) {
-    // Kolla de senaste 3 meddelandena för human-svar
     const recentHistory = history.slice(-3);
     humanTookOver = recentHistory.some(msg => msg.sender_type === 'human');
     
@@ -90,7 +88,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // BELLA ITALIA SYSTEM PROMPT - UPPDATERAD MED HANDOFF-INSTRUKTIONER
+  // BELLA ITALIA SYSTEM PROMPT
   const systemInstruction = `Du ÄR Sofia, hovmästare på Bella Italia sedan 3 år. Du LEVER denna roll.
 
 🌍 SPRÅK (VIKTIGT!):
@@ -154,7 +152,7 @@ Mån-Tor: 11-22, Fre-Lör: 11-23, Sön: 12-22
 
 🔄 HANDOFF TILL PERSONAL (SUPER VIKTIGT!):
 Om gästen:
-- Explicit ber att prata med personal/människa/chef
+- Explicit ber att prata med personal/människa/chef/ägare
 - Har en fråga du INTE kan svara på (kosher, halal, specifika allergier, privata event, catering, etc)
 - Uttrycker missnöje eller klagomål
 
@@ -204,7 +202,6 @@ VIKTIGT:
   
   if (history && Array.isArray(history)) {
     for (const msg of history) {
-      // Om det är personalens svar (human), markera det tydligt för Sofia
       if (msg.sender_type === 'human') {
         contents.push({
           role: 'user',
@@ -230,10 +227,6 @@ VIKTIGT:
 
   // OM PERSONAL HAR TAGIT ÖVER - SVARA INTE MED AI
   if (humanTookOver) {
-    // Spara bara användarens meddelande, skicka inget AI-svar
-    // Personalen ser meddelandet i dashboarden och kan svara
-    
-    // Uppdatera session timestamp
     if (currentSessionId) {
       await supabase
         .from('chat_sessions')
@@ -241,7 +234,6 @@ VIKTIGT:
         .eq('id', currentSessionId);
     }
     
-    // Returnera tomt svar - widgeten visar inget
     return res.status(200).json({
       candidates: [{
         content: {
@@ -290,7 +282,6 @@ VIKTIGT:
           sender_type: 'ai'
         });
         
-        // Uppdatera session
         await supabase
           .from('chat_sessions')
           .update({ 
@@ -302,8 +293,7 @@ VIKTIGT:
       }
     }
 
-    // FÖRBÄTTRAD TRIGGER-LOGIK
-    // Analysera konversationen om NÅGOT av följande är sant
+    // FÖRBÄTTRAD TRIGGER-LOGIK MED BÄTTRE LOGGNING
     const fullConversation = [
       ...(history || []),
       { role: 'user', content: prompt },
@@ -311,7 +301,6 @@ VIKTIGT:
     ];
     
     if (currentSessionId && fullConversation.length >= 2) {
-      // Kolla ALLA meddelanden, inte bara de senaste
       const allMessages = fullConversation.map(m => m.content).join(' ').toLowerCase();
       const recentMessages = fullConversation.slice(-4).map(m => m.content).join(' ').toLowerCase();
       const userMessage = prompt.toLowerCase();
@@ -323,25 +312,33 @@ VIKTIGT:
       // Klagomål triggers
       const hasComplaint = /(klagomål|missnöjd|dålig|besviken|arg|fel |problem|klaga|hemskt|fruktansvärt|skandal)/i.test(recentMessages);
       
-      // EXPLICIT handoff request - gästen vill prata med människa
-      const wantsHuman = /(prata med|tala med|personal|chef|människa|riktig person|mänsklig|kontakta er|nå er|höra av er|prata med någon|träffa|boka möte med)/i.test(userMessage);
+      // FÖRBÄTTRAD: Gästen vill prata med människa - fler varianter
+      const wantsHuman = /(prata med|tala med|personal|chef|människa|riktig person|mänsklig|kontakta er|nå er|höra av er|prata med någon|träffa|boka möte med|ägare|manager|ansvarig|get me|speak to|talk to|human|real person)/i.test(userMessage);
       
       // Frågor som Sofia troligen inte kan svara på
       const specialRequests = /(kosher|halal|vegan|strikt|privat event|kalas|bröllop|svensexa|möhippa|firmafest|allergisk mot|intolerans|specialkost|catering|hyra lokal|stora sällskap|rullstol|tillgänglighet|parkering|present|julbord|påsk|nyår|gluten|laktos|nöt)/i.test(userMessage);
       
-      // Sofias svar indikerar att hon inte kunde svara
+      // Sofias svar indikerar att hon inte kunde svara eller kopplar vidare
       const sofiaUnsure = /(vet tyvärr inte|kan inte svara på|får du kontakta|rekommenderar att du ringer|bäst att fråga|inte säker på|får återkomma|har ingen information|kan tyvärr inte|ber om ursäkt men)/i.test(aiResponse);
       
-      // Sofia erbjuder att skicka vidare (då ska vi vara redo att trigga handoff)
-      const sofiaOffersHandoff = /(skickar vidare|skickar din fråga|personalen återkommer|personalen kontaktar|kan jag få din email|kan jag få ditt nummer)/i.test(aiResponse);
+      // Sofia erbjuder handoff - FÖRBÄTTRAD med fler varianter
+      const sofiaOffersHandoff = /(kopplar dig|skickar vidare|skickar din fråga|personalen återkommer|personalen kontaktar|kan jag få din email|kan jag få ditt nummer|dröj kvar|personal.*svarar|personal.*kommer)/i.test(aiResponse);
+
+      // LOGGA ALLA TRIGGERS
+      console.log('=== TRIGGER ANALYSIS ===');
+      console.log('User message:', userMessage);
+      console.log('AI response (first 100 chars):', aiResponse.substring(0, 100));
+      console.log('Triggers:', { 
+        hasEmail, hasPhone, hasComplaint, wantsHuman, specialRequests, sofiaUnsure, sofiaOffersHandoff 
+      });
 
       // Kör analys om NÅGOT av dessa är sant
       const shouldAnalyze = hasEmail || hasPhone || hasComplaint || wantsHuman || specialRequests || sofiaUnsure || sofiaOffersHandoff;
       
+      console.log('Should analyze:', shouldAnalyze);
+      
       if (shouldAnalyze) {
-        console.log('Trigger detected, running analysis:', { 
-          hasEmail, hasPhone, hasComplaint, wantsHuman, specialRequests, sofiaUnsure, sofiaOffersHandoff 
-        });
+        console.log('>>> RUNNING ANALYSIS <<<');
         await analyzeConversation(currentSessionId, fullConversation);
       }
     }
@@ -362,12 +359,13 @@ async function analyzeConversation(sessionId, conversationHistory, retryCount = 
     const API_KEY = process.env.GEMINI_API_KEY;
     if (!API_KEY) return;
 
-    // Bygg konversationstext
     const conversationText = conversationHistory
       .map(msg => `${msg.role === 'user' ? 'Gäst' : 'Sofia'}: ${msg.content}`)
       .join('\n');
 
-    // FÖRBÄTTRAD analysisprompt
+    console.log('=== ANALYZING CONVERSATION ===');
+    console.log(conversationText);
+
     const analysisPrompt = `Analysera denna restaurangkonversation noggrant:
 
 ${conversationText}
@@ -379,10 +377,11 @@ Avgör följande:
    - Om ALLT finns = reservation_complete: true
 
 2. BEHÖVER MÄNSKLIGT SVAR: Ska personalen kontaktas? Sant om:
-   - Gästen explicit ber att prata med personal/människa/chef
-   - Gästen har en fråga Sofia inte kunde svara på (kosher, halal, allergier, privata event, etc)
+   - Gästen explicit ber att prata med personal/människa/chef/ägare
+   - Gästen har en fråga Sofia inte kunde svara på
    - Sofia sa "vet inte", "kan inte svara", "kontakta restaurangen" eller liknande
    - Gästen verkar frustrerad eller missnöjd
+   - Sofia erbjuder att koppla vidare till personalen
 
 3. KLAGOMÅL: Uttrycker gästen missnöje?
 
@@ -419,7 +418,6 @@ Svara ENDAST med JSON (ingen annan text):
       }
     );
 
-    // Hantera rate limit med retry
     if (response.status === 429) {
       if (retryCount < 3) {
         const waitTime = Math.pow(2, retryCount) * 1000;
@@ -440,7 +438,9 @@ Svara ENDAST med JSON (ingen annan text):
     const analysisData = await response.json();
     const analysisText = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
-    // Parse JSON från svaret
+    console.log('=== ANALYSIS RESULT ===');
+    console.log(analysisText);
+
     const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       console.log('No JSON found in analysis');
@@ -448,7 +448,7 @@ Svara ENDAST med JSON (ingen annan text):
     }
 
     const analysis = JSON.parse(jsonMatch[0]);
-    console.log('Conversation analysis:', analysis);
+    console.log('Parsed analysis:', analysis);
 
     // Uppdatera session med gästinfo om vi har det
     if (analysis.guest_name || analysis.guest_email || analysis.guest_phone) {
@@ -457,11 +457,15 @@ Svara ENDAST med JSON (ingen annan text):
 
     // Hantera komplett reservation
     if (analysis.reservation_complete && analysis.guest_name && (analysis.guest_email || analysis.guest_phone)) {
+      console.log('>>> HANDLING COMPLETE RESERVATION <<<');
       await handleCompleteReservation(sessionId, analysis);
     }
     // Hantera frågor som behöver mänskligt svar (ÄVEN utan kontaktinfo!)
     else if (analysis.needs_human_response || analysis.is_complaint) {
+      console.log('>>> HANDLING NEEDS HUMAN RESPONSE <<<');
       await handleNeedsHumanResponse(sessionId, analysis);
+    } else {
+      console.log('No action needed from analysis');
     }
 
   } catch (err) {
@@ -469,10 +473,9 @@ Svara ENDAST med JSON (ingen annan text):
   }
 }
 
-// Uppdatera session med gästinfo så det syns i dashboarden
+// Uppdatera session med gästinfo
 async function updateSessionWithGuestInfo(sessionId, analysis) {
   try {
-    // Hämta befintlig metadata först
     const { data: existingSession } = await supabase
       .from('chat_sessions')
       .select('metadata')
@@ -506,7 +509,6 @@ async function updateSessionWithGuestInfo(sessionId, analysis) {
 // Hantera komplett reservation
 async function handleCompleteReservation(sessionId, analysis) {
   try {
-    // Kolla om notification redan finns för denna session
     const { data: existingNotif } = await supabase
       .from('notifications')
       .select('id')
@@ -522,7 +524,6 @@ async function handleCompleteReservation(sessionId, analysis) {
     const guestContact = analysis.guest_email || analysis.guest_phone;
     const summary = `Reservation ${analysis.reservation_date} kl ${analysis.reservation_time}, ${analysis.party_size} pers${analysis.special_requests ? ', ' + analysis.special_requests : ''}`;
     
-    // Skapa notification i databasen
     const { data: notification, error: notifError } = await supabase
       .from('notifications')
       .insert({
@@ -550,7 +551,6 @@ async function handleCompleteReservation(sessionId, analysis) {
       return;
     }
 
-    // Markera session som needs_human
     await supabase
       .from('chat_sessions')
       .update({ needs_human: true })
@@ -558,7 +558,6 @@ async function handleCompleteReservation(sessionId, analysis) {
 
     console.log('Reservation notification created:', notification.id);
 
-    // Skicka email till restaurangen
     await sendRestaurantNotificationEmail(sessionId, {
       type: 'reservation',
       guestName: analysis.guest_name,
@@ -572,7 +571,6 @@ async function handleCompleteReservation(sessionId, analysis) {
       }
     });
 
-    // Skicka bekräftelsemail till gästen (om vi har email)
     if (analysis.guest_email) {
       await sendGuestConfirmationEmail(analysis.guest_email, {
         guestName: analysis.guest_name,
@@ -591,7 +589,6 @@ async function handleCompleteReservation(sessionId, analysis) {
 // Hantera frågor som behöver mänskligt svar
 async function handleNeedsHumanResponse(sessionId, analysis) {
   try {
-    // Kolla om vi redan har en notification för denna session
     const { data: existingNotif } = await supabase
       .from('notifications')
       .select('id')
@@ -607,7 +604,6 @@ async function handleNeedsHumanResponse(sessionId, analysis) {
     const notificationType = analysis.is_complaint ? 'complaint' : 'question';
     const priority = analysis.is_complaint ? 'urgent' : 'normal';
     
-    // Bygg bättre sammanfattning
     let summary = analysis.needs_human_reason || '';
     if (analysis.unanswered_question) {
       summary = `Fråga: "${analysis.unanswered_question}"`;
@@ -616,7 +612,8 @@ async function handleNeedsHumanResponse(sessionId, analysis) {
       summary = analysis.is_complaint ? 'Gäst har uttryckt missnöje' : 'Gäst vill prata med personal';
     }
 
-    // Skapa notification
+    console.log('Creating notification:', { notificationType, priority, summary });
+
     const { data: notification, error: notifError } = await supabase
       .from('notifications')
       .insert({
@@ -638,7 +635,6 @@ async function handleNeedsHumanResponse(sessionId, analysis) {
       return;
     }
 
-    // Markera session
     await supabase
       .from('chat_sessions')
       .update({ needs_human: true })
@@ -646,8 +642,9 @@ async function handleNeedsHumanResponse(sessionId, analysis) {
 
     console.log('Human response notification created:', notification.id);
 
-    // Skicka email till restaurangen
-    const guestContact = analysis.guest_email || analysis.guest_phone || 'Ej angiven ännu';
+    const guestContact = analysis.guest_email || analysis.guest_phone || 'Ej angiven ännu - gäst väntar i chatten';
+    
+    console.log('Sending email notification...');
     await sendRestaurantNotificationEmail(sessionId, {
       type: notificationType,
       guestName: analysis.guest_name || 'Okänd gäst',
@@ -669,6 +666,10 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
     return;
   }
 
+  console.log('=== SENDING EMAIL ===');
+  console.log('Session:', sessionId);
+  console.log('Data:', data);
+
   const typeEmoji = {
     reservation: '📅',
     complaint: '🚨',
@@ -680,7 +681,7 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
   const typeText = {
     reservation: 'Ny bokningsförfrågan - VÄNTAR PÅ BEKRÄFTELSE',
     complaint: 'Klagomål - KRÄVER OMEDELBAR ÅTGÄRD',
-    question: 'Fråga från gäst - VÄNTAR PÅ SVAR',
+    question: 'Gäst vill prata med personal - VÄNTAR PÅ SVAR',
     special_request: 'Specialönskemål',
     handoff: 'Gäst vill prata med personal'
   };
@@ -689,9 +690,8 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
     ? '<div style="background: #dc2626; color: white; padding: 12px; text-align: center; font-weight: bold;">⚠️ KRÄVER OMEDELBAR UPPMÄRKSAMHET</div>'
     : data.type === 'reservation'
     ? '<div style="background: #f59e0b; color: white; padding: 12px; text-align: center; font-weight: bold;">📞 Vänligen bekräfta inom 2 timmar</div>'
-    : '<div style="background: #3b82f6; color: white; padding: 12px; text-align: center; font-weight: bold;">💬 Gäst väntar på svar</div>';
+    : '<div style="background: #3b82f6; color: white; padding: 12px; text-align: center; font-weight: bold;">💬 Gäst väntar på svar i chatten!</div>';
 
-  // Bygg detaljer för reservation
   let detailsHtml = '';
   if (data.type === 'reservation' && data.details) {
     detailsHtml = `
@@ -705,7 +705,6 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
     `;
   }
 
-  // Info om obesvarad fråga
   if (data.unansweredQuestion) {
     detailsHtml += `
       <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin: 16px 0;">
