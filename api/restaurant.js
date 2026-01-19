@@ -8,9 +8,18 @@ const supabase = createClient(
 // Bella Italia customer ID
 const BELLA_ITALIA_ID = '3c6d67d9-22bb-4a3e-94ca-ca552eddb08e';
 
+// Superadmin email for test notifications
+const SUPERADMIN_EMAIL = 'eric@eryai.tech';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // CHECK IF THIS IS A TEST REQUEST FROM MONITORING
+  const isTestMode = req.headers['x-test-mode'] === 'true';
+  if (isTestMode) {
+    console.log('🧪 TEST MODE ENABLED - Emails will only go to superadmin');
   }
 
   const API_KEY = process.env.GEMINI_API_KEY;
@@ -33,7 +42,10 @@ export default async function handler(req, res) {
         .insert({
           customer_id: BELLA_ITALIA_ID,
           status: 'active',
-          metadata: { source: 'web-widget' }
+          metadata: { 
+            source: 'web-widget',
+            is_test: isTestMode
+          }
         })
         .select()
         .single();
@@ -326,6 +338,7 @@ VIKTIGT:
 
       // LOGGA ALLA TRIGGERS
       console.log('=== TRIGGER ANALYSIS ===');
+      console.log('Test mode:', isTestMode);
       console.log('User message:', userMessage);
       console.log('AI response (first 100 chars):', aiResponse.substring(0, 100));
       console.log('Triggers:', { 
@@ -339,7 +352,7 @@ VIKTIGT:
       
       if (shouldAnalyze) {
         console.log('>>> RUNNING ANALYSIS <<<');
-        await analyzeConversation(currentSessionId, fullConversation);
+        await analyzeConversation(currentSessionId, fullConversation, isTestMode);
       }
     }
 
@@ -354,7 +367,7 @@ VIKTIGT:
 }
 
 // Analysera konversation för reservationer och frågor som behöver mänskligt svar
-async function analyzeConversation(sessionId, conversationHistory, retryCount = 0) {
+async function analyzeConversation(sessionId, conversationHistory, isTestMode = false, retryCount = 0) {
   try {
     const API_KEY = process.env.GEMINI_API_KEY;
     if (!API_KEY) return;
@@ -364,6 +377,7 @@ async function analyzeConversation(sessionId, conversationHistory, retryCount = 
       .join('\n');
 
     console.log('=== ANALYZING CONVERSATION ===');
+    console.log('Test mode:', isTestMode);
     console.log(conversationText);
 
     const analysisPrompt = `Analysera denna restaurangkonversation noggrant:
@@ -423,7 +437,7 @@ Svara ENDAST med JSON (ingen annan text):
         const waitTime = Math.pow(2, retryCount) * 1000;
         console.log(`Rate limited, retrying in ${waitTime}ms (attempt ${retryCount + 1}/3)`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
-        return analyzeConversation(sessionId, conversationHistory, retryCount + 1);
+        return analyzeConversation(sessionId, conversationHistory, isTestMode, retryCount + 1);
       } else {
         console.error('Analysis failed after 3 retries due to rate limiting');
         return;
@@ -458,12 +472,12 @@ Svara ENDAST med JSON (ingen annan text):
     // Hantera komplett reservation
     if (analysis.reservation_complete && analysis.guest_name && (analysis.guest_email || analysis.guest_phone)) {
       console.log('>>> HANDLING COMPLETE RESERVATION <<<');
-      await handleCompleteReservation(sessionId, analysis);
+      await handleCompleteReservation(sessionId, analysis, isTestMode);
     }
     // Hantera frågor som behöver mänskligt svar (ÄVEN utan kontaktinfo!)
     else if (analysis.needs_human_response || analysis.is_complaint) {
       console.log('>>> HANDLING NEEDS HUMAN RESPONSE <<<');
-      await handleNeedsHumanResponse(sessionId, analysis);
+      await handleNeedsHumanResponse(sessionId, analysis, isTestMode);
     } else {
       console.log('No action needed from analysis');
     }
@@ -507,7 +521,7 @@ async function updateSessionWithGuestInfo(sessionId, analysis) {
 }
 
 // Hantera komplett reservation
-async function handleCompleteReservation(sessionId, analysis) {
+async function handleCompleteReservation(sessionId, analysis, isTestMode = false) {
   try {
     const { data: existingNotif } = await supabase
       .from('notifications')
@@ -558,6 +572,7 @@ async function handleCompleteReservation(sessionId, analysis) {
 
     console.log('Reservation notification created:', notification.id);
 
+    // Send email to restaurant (or superadmin in test mode)
     await sendRestaurantNotificationEmail(sessionId, {
       type: 'reservation',
       guestName: analysis.guest_name,
@@ -569,16 +584,21 @@ async function handleCompleteReservation(sessionId, analysis) {
         partySize: analysis.party_size,
         specialRequests: analysis.special_requests
       }
-    });
+    }, isTestMode);
 
+    // Send confirmation email to guest (SKIP in test mode)
     if (analysis.guest_email) {
-      await sendGuestConfirmationEmail(analysis.guest_email, {
-        guestName: analysis.guest_name,
-        date: analysis.reservation_date,
-        time: analysis.reservation_time,
-        partySize: analysis.party_size,
-        specialRequests: analysis.special_requests
-      });
+      if (isTestMode) {
+        console.log('🧪 TEST MODE: Skipping guest confirmation email to', analysis.guest_email);
+      } else {
+        await sendGuestConfirmationEmail(analysis.guest_email, {
+          guestName: analysis.guest_name,
+          date: analysis.reservation_date,
+          time: analysis.reservation_time,
+          partySize: analysis.party_size,
+          specialRequests: analysis.special_requests
+        });
+      }
     }
 
   } catch (err) {
@@ -587,7 +607,7 @@ async function handleCompleteReservation(sessionId, analysis) {
 }
 
 // Hantera frågor som behöver mänskligt svar
-async function handleNeedsHumanResponse(sessionId, analysis) {
+async function handleNeedsHumanResponse(sessionId, analysis, isTestMode = false) {
   try {
     const { data: existingNotif } = await supabase
       .from('notifications')
@@ -651,7 +671,7 @@ async function handleNeedsHumanResponse(sessionId, analysis) {
       guestContact: guestContact,
       summary: summary,
       unansweredQuestion: analysis.unanswered_question
-    });
+    }, isTestMode);
 
   } catch (err) {
     console.error('Error handling needs human response:', err);
@@ -659,7 +679,7 @@ async function handleNeedsHumanResponse(sessionId, analysis) {
 }
 
 // Skicka notification email till restaurangen
-async function sendRestaurantNotificationEmail(sessionId, data) {
+async function sendRestaurantNotificationEmail(sessionId, data, isTestMode = false) {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
   if (!RESEND_API_KEY) {
     console.log('RESEND_API_KEY not set, skipping email');
@@ -668,7 +688,12 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
 
   console.log('=== SENDING EMAIL ===');
   console.log('Session:', sessionId);
+  console.log('Test mode:', isTestMode);
   console.log('Data:', data);
+
+  // In test mode, send to superadmin instead of customer
+  const recipientEmail = isTestMode ? SUPERADMIN_EMAIL : 'demo@eryai.tech';
+  const subjectPrefix = isTestMode ? '🧪 [TEST] ' : '';
 
   const typeEmoji = {
     reservation: '📅',
@@ -685,6 +710,11 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
     special_request: 'Specialönskemål',
     handoff: 'Gäst vill prata med personal'
   };
+
+  // Add test mode banner if in test mode
+  const testModeBanner = isTestMode 
+    ? '<div style="background: #7c3aed; color: white; padding: 12px; text-align: center; font-weight: bold;">🧪 TEST EMAIL - FROM MONITORING SYSTEM - NOT A REAL CUSTOMER</div>'
+    : '';
 
   const urgencyBanner = data.type === 'complaint' 
     ? '<div style="background: #dc2626; color: white; padding: 12px; text-align: center; font-weight: bold;">⚠️ KRÄVER OMEDELBAR UPPMÄRKSAMHET</div>'
@@ -723,9 +753,9 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
       },
       body: JSON.stringify({
         from: 'Sofia <sofia@eryai.tech>',
-        to: 'demo@eryai.tech',
+        to: recipientEmail,
         reply_to: 'info@bellaitalia.se',
-        subject: `${typeEmoji[data.type] || '📌'} ${typeText[data.type] || 'Notifikation'} - Bella Italia`,
+        subject: `${subjectPrefix}${typeEmoji[data.type] || '📌'} ${typeText[data.type] || 'Notifikation'} - Bella Italia`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -744,11 +774,13 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
           </head>
           <body>
             <div class="container">
+              ${testModeBanner}
               <div class="header">
                 <h1>${typeEmoji[data.type] || '📌'} Sofia behöver din hjälp!</h1>
               </div>
               ${urgencyBanner}
               <div class="content">
+                ${isTestMode ? '<p style="color: #7c3aed; font-weight: bold;">⚠️ This is a test email from the monitoring system. No action required.</p>' : ''}
                 <div class="detail">
                   <span class="label">Typ:</span> ${typeText[data.type] || data.type}
                 </div>
@@ -769,6 +801,7 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
               </div>
               <div class="footer">
                 Skickat av Sofia AI · Bella Italia · Powered by EryAI.tech
+                ${isTestMode ? '<br><strong>🧪 TEST MODE - Monitoring System</strong>' : ''}
               </div>
             </div>
           </body>
@@ -780,7 +813,10 @@ async function sendRestaurantNotificationEmail(sessionId, data) {
     const emailResult = await emailResponse.json();
     
     if (emailResponse.ok) {
-      console.log('Restaurant notification email sent:', emailResult.id);
+      console.log(`Restaurant notification email sent to ${recipientEmail}:`, emailResult.id);
+      if (isTestMode) {
+        console.log('🧪 TEST MODE: Email sent to superadmin instead of customer');
+      }
     } else {
       console.error('Resend API error:', emailResponse.status, emailResult);
     }
